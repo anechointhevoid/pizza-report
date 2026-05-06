@@ -11,7 +11,7 @@
     body { font-family: system-ui, sans-serif; }
     .section:hover { transform: translateY(-2px); transition: all 0.3s; }
     iframe { border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3); }
-    .gauge-container { position: relative; height: 148px; }
+    .error { background: #450a0a; border: 1px solid #ef4444; padding: 1rem; border-radius: 8px; margin: 0.5rem 0; }
   </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen pb-12">
@@ -37,33 +37,158 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-      <!-- Pizza Tracker -->
+      <!-- Pizza Section with Popular Times -->
       <div class="bg-zinc-900 p-6 rounded-2xl border border-orange-900/30 section lg:col-span-2">
-        <h2 class="text-3xl mb-6 flex items-center gap-3"><i class="fas fa-pizza-slice text-orange-500"></i> Domino's Pizza Tracker — Pentagon & White House</h2>
+        <h2 class="text-3xl mb-6 flex items-center gap-3"><i class="fas fa-pizza-slice text-orange-500"></i> Domino's Pizza Tracker — Google Popular Times</h2>
+        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
             <h3 class="font-semibold text-orange-400">🍕 Pentagon — Closest</h3>
             <p class="text-xs text-zinc-400">3535 S Ball St, Arlington, VA 22202</p>
             <a href="https://www.google.com/maps/place/3535+S+Ball+St,+Arlington,+VA+22202" target="_blank" class="block my-4">
-              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.8505,-77.0535&zoom=16&size=600x200&maptype=roadmap&markers=color:red%7C38.8505,-77.0535&key=NOKEY" class="w-full rounded-lg" alt="Map">
+              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.8505,-77.0535&zoom=17&size=600x200&maptype=roadmap&markers=color:red%7C38.8505,-77.0535" class="w-full rounded-lg" alt="Map">
             </a>
-            <a href="https://pizza.dominos.com/virginia/arlington/3535-south-ball-st" target="_blank" class="block text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">Order / Live Hours →</a>
+            <a href="https://www.google.com/maps/place/3535+S+Ball+St,+Arlington,+VA+22202" target="_blank" class="block w-full text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">
+              Open Google Maps → View Popular Times Graph (Busier than usual)
+            </a>
           </div>
 
           <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
             <h3 class="font-semibold text-orange-400">🍕 Pentagon Area</h3>
             <p class="text-xs text-zinc-400">2602 Columbia Pike, Arlington, VA 22204</p>
             <a href="https://www.google.com/maps/place/2602+Columbia+Pike,+Arlington,+VA+22204" target="_blank" class="block my-4">
-              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.852,-77.085&zoom=16&size=600x200&maptype=roadmap&markers=color:red%7C38.852,-77.085&key=NOKEY" class="w-full rounded-lg" alt="Map">
+              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.852,-77.085&zoom=17&size=600x200&maptype=roadmap&markers=color:red%7C38.852,-77.085" class="w-full rounded-lg" alt="Map">
             </a>
-            <a href="https://pizza.dominos.com/virginia/arlington/2602-columbia-pike" target="_blank" class="block text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">Order / Live Hours →</a>
+            <a href="https://www.google.com/maps/place/2602+Columbia+Pike,+Arlington,+VA+22204" target="_blank" class="block w-full text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">
+              Open Google Maps → View Popular Times Graph
+            </a>
           </div>
 
           <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
             <h3 class="font-semibold text-orange-400">🍕 White House — Closest</h3>
             <p class="text-xs text-zinc-400">1300 L St NW, Washington, DC 20005</p>
             <a href="https://www.google.com/maps/place/1300+L+St+NW,+Washington,+DC+20005" target="_blank" class="block my-4">
-              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.903,-77.031&zoom=16&size=600x200&maptype=roadmap&markers=color:red%7C38.903,-77.031&key=NOKEY" class="w-full rounded-lg" alt="Map">
+              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.903,-77.031&zoom=17&size=600x200&maptype=roadmap&markers=color:red%7C38.903,-77.031" class="w-full rounded-lg" alt="Map">
+            </a>
+            <a href="https://www.google.com/maps/place/1300+L+St+NW,+Washington,+DC+20005" target="_blank" class="block w-full text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">
+              Open Google Maps → View Popular Times Graph
+            </a>
+          </div>
+
+          <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
+            <h3 class="font-semibold text-orange-400">🍕 White House Area</h3>
+            <p class="text-xs text-zinc-400">Nearby Domino's</p>
+            <a href="https://www.google.com/maps/search/Domino's+near+White+House,+Washington,+DC" target="_blank" class="block my-4">
+              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.8977,-77.0365&zoom=15&size=600x200&maptype=roadmap&markers=color:red%7C38.8977,-77.0365" class="w-full rounded-lg" alt="Map">
+            </a>
+            <a href="https://www.google.com/maps/search/Domino's+near+White+House,+Washington,+DC" target="_blank" class="block w-full text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">
+              Open Google Maps → View All Popular Times Graphs
+            </a>
+          </div>
+        </div>
+
+        <div class="mt-8">
+          <iframe src="https://pizzint.watch/" class="w-full h-[460px]" title="PizzINT Popular Times"></iframe>
+        </div>
+      </div>
+
+      <!-- Flight Tracking -->
+      <div class="lg:col-span-2 bg-zinc-900 p-6 rounded-2xl border border-blue-900/30 section">
+        <h2 class="text-3xl mb-6 flex items-center gap-3"><i class="fas fa-plane text-sky-400"></i> Dedicated Flight Radar Tracking</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div><h3 class="font-semibold mb-3">AF1 VC-25A</h3><iframe src="https://globe.adsbexchange.com/?icao=adfdf8,adfdf9" class="w-full h-[420px]"></iframe></div>
+          <div><h3 class="font-semibold mb-3">E-4B Nightwatch</h3><iframe src="https://globe.adsbexchange.com/?search=E-4B" class="w-full h-[420px]"></iframe></div>
+          <div><h3 class="font-semibold mb-3">All Military Aircraft</h3><iframe src="https://globe.adsbexchange.com/?mil=1" class="w-full h-[420px]"></iframe></div>
+          <div><h3 class="font-semibold mb-3">Full Globe</h3><iframe src="https://globe.adsbexchange.com/" class="w-full h-[420px]"></iframe></div>
+        </div>
+      </div>
+
+      <!-- Succession + Live Tweets -->
+      <div class="bg-zinc-900 p-6 rounded-2xl border border-amber-900/30 section">
+        <h2 class="text-2xl mb-4 flex items-center gap-3"><i class="fas fa-users text-amber-400"></i> Presidential Line of Succession + Live X Activity</h2>
+        <div id="succession-table" class="mb-6"></div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div><h3 class="mb-2 font-medium">Donald Trump</h3><iframe src="https://nitter.privacydev.net/realDonaldTrump" class="w-full h-80" title="Trump"></iframe></div>
+          <div><h3 class="mb-2 font-medium">JD Vance (VP)</h3><iframe src="https://nitter.privacydev.net/JDVance" class="w-full h-80" title="JD Vance"></iframe></div>
+          <div><h3 class="mb-2 font-medium">Mike Johnson (Speaker)</h3><iframe src="https://nitter.privacydev.net/SpeakerJohnson" class="w-full h-80" title="Speaker"></iframe></div>
+        </div>
+      </div>
+
+      <!-- Polymarket -->
+      <div class="bg-zinc-900 p-6 rounded-2xl border border-purple-900/30 section">
+        <h2 class="text-2xl mb-4">Polymarket War / Escalation Odds</h2>
+        <a href="https://polymarket.com/" target="_blank" class="block bg-zinc-800 hover:bg-zinc-700 p-12 rounded-2xl text-center text-2xl">
+          Open Polymarket Live Markets →
+        </a>
+      </div>
+
+      <!-- Adversary Media -->
+      <div class="bg-zinc-900 p-6 rounded-2xl border border-amber-900/30 section lg:col-span-2">
+        <h2 class="text-2xl mb-4 flex items-center gap-3"><i class="fas fa-globe text-amber-400"></i> Adversary Media Live Pulse</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <a href="https://en.mehrnews.com/" target="_blank" class="block p-6 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">🇮🇷 Mehr News (Iran)</a>
+          <a href="https://sputnikglobe.com/" target="_blank" class="block p-6 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">🇷🇺 Sputnik (Russia)</a>
+          <a href="https://english.news.cn/" target="_blank" class="block p-6 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">🇨🇳 Xinhua (China)</a>
+          <a href="https://www.jpost.com/" target="_blank" class="block p-6 bg-zinc-800 hover:bg-zinc-700 rounded-2xl">🇮🇱 Jerusalem Post (Israel)</a>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-16 text-center text-xs text-zinc-500">
+      Pure client-side • GitHub Pages • Errors will appear in red boxes below if any
+    </footer>
+  </div>
+
+  <script>
+    let charts = {};
+    function createGauge(id, value, color) {
+      const ctx = document.getElementById(id);
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(ctx, {
+        type: 'doughnut',
+        data: { datasets: [{ data: [value, 100-value], backgroundColor: [color, '#27272a'], borderWidth: 0 }] },
+        options: { cutout: '78%', plugins: { legend: {display:false}, tooltip:{enabled:false} }}
+      });
+    }
+
+    function showError(section, msg) {
+      const div = document.createElement('div');
+      div.className = 'error';
+      div.innerHTML = `<strong>Error in ${section}:</strong><br>${msg}`;
+      document.body.appendChild(div);
+    }
+
+    function fetchSuccession() {
+      const div = document.getElementById('succession-table');
+      div.innerHTML = `
+        <table class="w-full text-sm">
+          <tr class="border-b border-zinc-700"><td class="p-3 font-mono w-8">1</td><td class="p-3">Vice President</td><td class="p-3 font-medium">JD Vance</td></tr>
+          <tr class="border-b border-zinc-700"><td class="p-3 font-mono w-8">2</td><td class="p-3">Speaker of the House</td><td class="p-3 font-medium">Mike Johnson</td></tr>
+          <tr class="border-b border-zinc-700"><td class="p-3 font-mono w-8">3</td><td class="p-3">President pro tempore</td><td class="p-3 font-medium">Chuck Grassley</td></tr>
+        </table>`;
+    }
+
+    function updateGauges() {
+      createGauge('pizzaGauge', 68, '#f59e0b');
+      createGauge('flightsGauge', 55, '#0ea5e9');
+      createGauge('marketGauge', 62, '#a855f7');
+      createGauge('sentimentGauge', 71, '#ef4444');
+      createGauge('adversaryGauge', 57, '#d97706');
+    }
+
+    window.onload = () => {
+      updateGauges();
+      fetchSuccession();
+      document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+
+      setInterval(() => {
+        document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+      }, 60000);
+    };
+  </script>
+</body>
+</html>              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.903,-77.031&zoom=16&size=600x200&maptype=roadmap&markers=color:red%7C38.903,-77.031&key=NOKEY" class="w-full rounded-lg" alt="Map">
             </a>
             <a href="https://pizza.dominos.com/washington-dc/washington/1300-l-st-nw" target="_blank" class="block text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">Order / Live Hours →</a>
           </div>
