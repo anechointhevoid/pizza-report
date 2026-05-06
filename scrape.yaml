@@ -1,0 +1,92 @@
+name: Scrape
+
+on:
+  schedule:
+    # Every 30 minutes. GitHub may delay scheduled jobs under load,
+    # so don't rely on exact timing.
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}  # Allow manual runs from the Actions tab
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - ".github/workflows/scrape.yml"
+
+# Limit to one concurrent run so commits don't pile up
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # needed to commit data/*.json back to the repo
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # LivePopularTimes is a community scraper, not on PyPI under
+          # a stable name — install from GitHub directly.
+          pip install \
+            "git+https://github.com/GrocerCheck/LivePopularTimes.git" \
+            requests beautifulsoup4 lxml
+
+      - name: Scrape Polymarket
+        # Polymarket is much more stable than the Google scrape, run first
+        run: python scripts/scrape_polymarket.py
+        continue-on-error: true
+
+      - name: Scrape Pizza (Google Popular Times)
+        run: python scripts/scrape_pizza.py
+        continue-on-error: true
+
+      - name: Show data file status
+        run: |
+          ls -la data/
+          echo "---"
+          echo "polymarket.json status:"
+          python -c "import json; d=json.load(open('data/polymarket.json')); print(' status=', d.get('status'),' events=', d.get('events_scanned'))" || true
+          echo "---"
+          echo "pizza.json status:"
+          python -c "import json; d=json.load(open('data/pizza.json')); print(' status=', d.get('status'),' errors=', len(d.get('errors',[])))" || true
+
+      - name: Commit & push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Only commit data/ — never anything else
+          git add data/
+
+          # Check whether anything is actually staged
+          if git diff --cached --quiet; then
+            echo "No data changes — skipping commit."
+            exit 0
+          fi
+
+          ts=$(date -u +"%Y-%m-%d %H:%M UTC")
+          git commit -m "data: refresh ${ts}" \
+            -m "Automated by .github/workflows/scrape.yml"
+          # Retry push in case of race with another run
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            if git push origin HEAD:"${GITHUB_REF_NAME}"; then
+              echo "Pushed."
+              exit 0
+            fi
+            echo "Push failed (attempt $i), retrying…"
+            sleep 5
+          done
+          echo "::warning::Could not push data refresh after 3 attempts."
