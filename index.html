@@ -3,66 +3,991 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>US War Report • OSINT Dashboard</title>
+  <title>US WAR REPORT // OSINT SITREP</title>
+  <meta name="description" content="Open-source indicator dashboard tracking pizza activity, military flights, prediction markets, line of succession, and adversary media around US national security flashpoints.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    body { font-family: system-ui, sans-serif; }
-    .section:hover { transform: translateY(-2px); transition: all 0.3s; }
-    iframe { border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3); }
-    .error { background: #450a0a; border: 1px solid #ef4444; padding: 1rem; border-radius: 8px; margin: 0.5rem 0; }
+    :root {
+      --bg: #0a0a0a;
+      --panel: #131313;
+      --panel-2: #1a1a1a;
+      --line: #2a2a2a;
+      --line-bright: #3a3a3a;
+      --ink: #e8e8e8;
+      --ink-dim: #888;
+      --accent: #dc2626;
+      --accent-bright: #ef4444;
+      --amber: #f59e0b;
+      --green: #22c55e;
+    }
+    html, body { background: var(--bg); color: var(--ink); }
+    body {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .display-font { font-family: 'Oswald', 'Impact', sans-serif; letter-spacing: 0.02em; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .classification-bar {
+      background: var(--accent); color: white;
+      font-family: 'Oswald', sans-serif; letter-spacing: 0.3em;
+    }
+
+    .panel { background: var(--panel); border: 1px solid var(--line); position: relative; }
+    .panel::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--line-bright), transparent);
+    }
+    .panel-header { border-bottom: 1px solid var(--line); background: var(--panel-2); }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.15rem 0.5rem; font-size: 0.65rem; letter-spacing: 0.1em;
+      border: 1px solid var(--line-bright); text-transform: uppercase;
+    }
+    .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px currentColor; }
+    .pill.live .dot { background: var(--accent-bright); animation: pulse 1.4s infinite; }
+    .pill.warn .dot { background: var(--amber); }
+    .pill.stale { border-color: var(--amber); color: var(--amber); }
+    .pill.stale .dot { background: var(--amber); }
+    .pill.fail { border-color: var(--accent-bright); color: var(--accent-bright); }
+    .pill.fail .dot { background: var(--accent-bright); }
+    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.35;} }
+
+    /* Indicator card */
+    .indicator {
+      background: var(--panel); border: 1px solid var(--line);
+      padding: 1rem; position: relative; overflow: hidden;
+    }
+    .indicator-label { font-size: 0.65rem; color: var(--ink-dim); letter-spacing: 0.18em; text-transform: uppercase; }
+    .indicator-value { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 2.5rem; line-height: 1; }
+    .indicator-meta { font-size: 0.7rem; color: var(--ink-dim); }
+    .bar-track { height: 4px; background: var(--line); position: relative; overflow: hidden; }
+    .bar-fill { position: absolute; top: 0; left: 0; bottom: 0; transition: width 0.6s ease-out; }
+
+    .tile {
+      background: var(--panel); border: 1px solid var(--line);
+      padding: 1rem; transition: all 0.15s; display: block; position: relative;
+    }
+    .tile:hover {
+      border-color: var(--accent); background: var(--panel-2);
+      transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--accent);
+    }
+    .tile .arrow { position: absolute; top: 1rem; right: 1rem; color: var(--ink-dim); transition: color 0.15s; }
+    .tile:hover .arrow { color: var(--accent-bright); }
+
+    .crosshair { position: relative; }
+    .crosshair::before, .crosshair::after { content: ''; position: absolute; width: 8px; height: 8px; border-color: var(--accent); }
+    .crosshair::before { top: -1px; left: -1px; border-top: 1px solid; border-left: 1px solid; }
+    .crosshair::after  { bottom: -1px; right: -1px; border-bottom: 1px solid; border-right: 1px solid; }
+
+    /* Pizza card */
+    .pizza-card { background: var(--panel); border: 1px solid var(--line); padding: 1rem; position: relative; }
+    .pizza-card .chart-wrap { height: 120px; margin-top: 0.6rem; position: relative; }
+    .pizza-card .stat-now {
+      font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 2rem; line-height: 1;
+    }
+    .pizza-card .day-tabs {
+      display: flex; gap: 0.15rem; margin-top: 0.4rem;
+      font-size: 0.6rem; letter-spacing: 0.1em;
+    }
+    .pizza-card .day-tab {
+      padding: 0.15rem 0.4rem; border: 1px solid var(--line);
+      cursor: pointer; color: var(--ink-dim); background: transparent;
+      font-family: inherit;
+    }
+    .pizza-card .day-tab:hover { color: var(--ink); border-color: var(--line-bright); }
+    .pizza-card .day-tab.active { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+    .pizza-card .day-tab.today { border-color: var(--accent); color: var(--accent-bright); }
+    .pizza-card .day-tab.today.active { color: var(--bg); }
+
+    /* Market list rows */
+    .market-row {
+      display: grid; grid-template-columns: 1fr auto; gap: 0.75rem;
+      padding: 0.65rem 0; border-bottom: 1px dashed var(--line); align-items: center;
+    }
+    .market-row:last-child { border-bottom: none; }
+    .market-q { font-size: 0.8rem; line-height: 1.35; }
+    .market-pct { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 1.4rem; min-width: 4rem; text-align: right; }
+    .market-vol { font-size: 0.65rem; color: var(--ink-dim); margin-top: 0.2rem; }
+
+    /* News */
+    .news-item { padding: 0.6rem 0; border-bottom: 1px dashed var(--line); }
+    .news-item:last-child { border-bottom: none; }
+    .news-source { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--accent-bright); text-transform: uppercase; }
+    .news-title { font-size: 0.85rem; line-height: 1.4; margin-top: 0.2rem; }
+    .news-time { font-size: 0.65rem; color: var(--ink-dim); margin-top: 0.2rem; }
+
+    /* Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--panel-2) 0%, var(--line) 50%, var(--panel-2) 100%);
+      background-size: 200% 100%; animation: skel 1.5s infinite; height: 1em; border-radius: 2px;
+    }
+    @keyframes skel { 0% {background-position: 200% 0;} 100% {background-position: -200% 0;} }
+
+    .scanlines {
+      position: fixed; pointer-events: none; inset: 0;
+      background: linear-gradient(transparent 50%, rgba(0,0,0,0.1) 50%);
+      background-size: 100% 3px; mix-blend-mode: multiply; opacity: 0.4; z-index: 1;
+    }
+
+    .section-h {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-family: 'Oswald', sans-serif; font-size: 1.4rem; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .section-h .num { color: var(--accent); font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em; }
+
+    /* X timeline embed wrapper — force fixed height & dark border */
+    .twitter-wrap {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      max-height: 600px;
+      overflow-y: auto;
+      padding: 0.5rem;
+    }
+
+    /* Error console */
+    #error-console {
+      background: rgba(220,38,38,0.08);
+      border: 1px solid var(--accent);
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.72rem;
+      color: #fca5a5;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #error-console h4 {
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.2em;
+      color: var(--accent-bright);
+      font-size: 0.8rem;
+      margin-bottom: 0.4rem;
+    }
+    #error-console pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0.2rem 0;
+      padding: 0.3rem 0.5rem;
+      background: rgba(0,0,0,0.3);
+      border-left: 2px solid var(--accent);
+    }
+
+    a { color: inherit; }
+    a:hover { color: var(--accent-bright); }
+
+    details summary { cursor: pointer; list-style: none; user-select: none; }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::after { content: '[ + ]'; color: var(--ink-dim); margin-left: 0.5rem; font-size: 0.75rem; }
+    details[open] summary::after { content: '[ - ]'; }
   </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen pb-12">
-  <div class="max-w-7xl mx-auto p-6">
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-zinc-800 pb-6 mb-8">
+<body class="min-h-screen">
+<div class="scanlines"></div>
+
+<!-- CLASSIFICATION BAR -->
+<div class="classification-bar text-center text-xs py-1 font-bold relative z-10">
+  // UNCLASSIFIED // OPEN SOURCE INTELLIGENCE // FOR SITUATIONAL AWARENESS ONLY //
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 relative z-10">
+
+  <!-- HEADER -->
+  <header class="mb-6">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-zinc-800">
       <div>
-        <h1 class="text-5xl font-bold tracking-tighter flex items-center gap-3">
-          🇺🇸 US WAR REPORT <span class="text-red-500">OSINT</span>
+        <div class="text-xs mono text-red-500 mb-1 tracking-[0.3em]">REPORT // 001</div>
+        <h1 class="display-font text-4xl md:text-6xl font-bold tracking-tight leading-none">
+          US WAR REPORT
+          <span class="text-red-600">▌</span>
         </h1>
-        <p class="text-zinc-400 mt-1">Pizza • Flights • Succession • Markets • Adversary Media</p>
+        <div class="text-zinc-400 text-sm mt-2">
+          OSINT indicators · Pizza · Flights · Markets · Succession · Adversary Media
+        </div>
       </div>
-      <div id="last-updated" class="text-sm text-zinc-400 mt-4 md:mt-0"></div>
-    </header>
-
-    <!-- Gauges -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-10">
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-orange-900/30"><h3 class="text-sm text-orange-400 mb-2 text-center">Pizza Surge</h3><div class="gauge-container"><canvas id="pizzaGauge"></canvas></div></div>
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-sky-900/30"><h3 class="text-sm text-sky-400 mb-2 text-center">Mil Flights</h3><div class="gauge-container"><canvas id="flightsGauge"></canvas></div></div>
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-purple-900/30"><h3 class="text-sm text-purple-400 mb-2 text-center">War Markets</h3><div class="gauge-container"><canvas id="marketGauge"></canvas></div></div>
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-red-900/30"><h3 class="text-sm text-red-400 mb-2 text-center">X Sentiment</h3><div class="gauge-container"><canvas id="sentimentGauge"></canvas></div></div>
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-amber-900/30"><h3 class="text-sm text-amber-400 mb-2 text-center">Adversary Rhetoric</h3><div class="gauge-container"><canvas id="adversaryGauge"></canvas></div></div>
+      <div class="flex flex-col items-start md:items-end gap-1 mono text-xs">
+        <div class="flex items-center gap-2">
+          <span class="pill live"><span class="dot"></span>LIVE</span>
+          <span class="text-zinc-500" id="utc-clock">--:--:-- UTC</span>
+        </div>
+        <div class="text-zinc-500" id="last-refresh">Initializing…</div>
+      </div>
     </div>
+  </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <!-- ERROR CONSOLE (only appears if anything fails) -->
+  <div id="error-console" style="display:none">
+    <h4>// LOAD ERRORS — copy & paste into a GitHub issue //</h4>
+    <div id="error-list"></div>
+  </div>
 
-      <!-- Pizza Section with Popular Times -->
-      <div class="bg-zinc-900 p-6 rounded-2xl border border-orange-900/30 section lg:col-span-2">
-        <h2 class="text-3xl mb-6 flex items-center gap-3"><i class="fas fa-pizza-slice text-orange-500"></i> Domino's Pizza Tracker — Google Popular Times</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
-            <h3 class="font-semibold text-orange-400">🍕 Pentagon — Closest</h3>
-            <p class="text-xs text-zinc-400">3535 S Ball St, Arlington, VA 22202</p>
-            <a href="https://www.google.com/maps/place/3535+S+Ball+St,+Arlington,+VA+22202" target="_blank" class="block my-4">
-              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.8505,-77.0535&zoom=17&size=600x200&maptype=roadmap&markers=color:red%7C38.8505,-77.0535" class="w-full rounded-lg" alt="Map">
-            </a>
-            <a href="https://www.google.com/maps/place/3535+S+Ball+St,+Arlington,+VA+22202" target="_blank" class="block w-full text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">
-              Open Google Maps → View Popular Times Graph (Busier than usual)
-            </a>
+  <!-- INDICATORS (live + cached fallback from data/polymarket.json) -->
+  <section class="mb-10">
+    <div class="flex items-baseline justify-between mb-3">
+      <h2 class="section-h"><span class="num">[ 01 ]</span> ESCALATION INDICATORS</h2>
+      <div class="text-xs text-zinc-500" id="indicators-status">Source: Polymarket</div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="indicator-grid">
+      <div class="indicator crosshair"><div class="indicator-label">RUSSIA × NATO</div><div class="skeleton mt-3 mb-2" style="height:2.5rem"></div><div class="skeleton" style="height:0.7rem;width:60%"></div></div>
+      <div class="indicator crosshair"><div class="indicator-label">IRAN STRIKE</div><div class="skeleton mt-3 mb-2" style="height:2.5rem"></div><div class="skeleton" style="height:0.7rem;width:60%"></div></div>
+      <div class="indicator crosshair"><div class="indicator-label">CHINA × TAIWAN</div><div class="skeleton mt-3 mb-2" style="height:2.5rem"></div><div class="skeleton" style="height:0.7rem;width:60%"></div></div>
+      <div class="indicator crosshair"><div class="indicator-label">NUCLEAR USE</div><div class="skeleton mt-3 mb-2" style="height:2.5rem"></div><div class="skeleton" style="height:0.7rem;width:60%"></div></div>
+    </div>
+    <div class="text-xs text-zinc-500 mt-3 mono">
+      ▸ Each value reflects current YES probability on the highest-volume relevant Polymarket market.
+    </div>
+  </section>
+
+  <!-- PIZZA INTEL (live charts from data/pizza.json) -->
+  <section class="panel mb-10">
+    <div class="panel-header px-4 py-3 flex items-center justify-between">
+      <h3 class="section-h text-base"><span class="num">[ 02 ]</span> PIZZA INDEX · DC METRO</h3>
+      <span class="pill" id="pizza-pill"><span class="dot"></span>LOADING</span>
+    </div>
+    <div class="p-4">
+      <p class="text-xs text-zinc-400 leading-relaxed mb-4 max-w-3xl">
+        The "Pentagon Pizza" indicator: anomalous late-night order surges at outlets near command centers have correlated historically with crisis activity. Charts show typical hourly busyness for the selected day; the orange bar marks the current hour and "NOW" shows current popularity if available. Tap any card to open Google Maps for the full live graph.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="pizza-grid">
+        <!-- Pizza cards rendered by JS -->
+        <div class="skeleton" style="height:240px"></div>
+        <div class="skeleton" style="height:240px"></div>
+        <div class="skeleton" style="height:240px"></div>
+        <div class="skeleton" style="height:240px"></div>
+      </div>
+      <div class="text-xs text-zinc-500 mt-4 mono" id="pizza-meta"></div>
+    </div>
+  </section>
+
+  <!-- FLIGHT TRACKING -->
+  <section class="panel mb-10">
+    <div class="panel-header px-4 py-3 flex items-center justify-between">
+      <h3 class="section-h text-base"><span class="num">[ 03 ]</span> AIRBORNE TRACKS</h3>
+      <span class="pill warn"><span class="dot"></span>EXTERNAL</span>
+    </div>
+    <div class="p-4">
+      <p class="text-xs text-zinc-400 leading-relaxed mb-4 max-w-3xl">
+        Direct links to ADS-B Exchange tracking views. ADS-B Exchange is the standard unfiltered feed for military aircraft activity. Embedding their globe view is blocked by their CSP, so each tile opens a focused tracker view in a new tab.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <a href="https://globe.adsbexchange.com/?icao=adfdf8" target="_blank" rel="noopener" class="tile">
+          <i class="fas fa-plane arrow"></i>
+          <div class="text-xs text-red-500 mono">VC-25A · ADFDF8</div>
+          <div class="text-sm font-medium mt-1">Air Force One · 28000</div>
+          <div class="text-xs text-zinc-500 mt-1">Presidential transport — primary</div>
+        </a>
+        <a href="https://globe.adsbexchange.com/?icao=adfdf9" target="_blank" rel="noopener" class="tile">
+          <i class="fas fa-plane arrow"></i>
+          <div class="text-xs text-red-500 mono">VC-25A · ADFDF9</div>
+          <div class="text-sm font-medium mt-1">Air Force One · 29000</div>
+          <div class="text-xs text-zinc-500 mt-1">Presidential transport — secondary</div>
+        </a>
+        <a href="https://globe.adsbexchange.com/?find_callsign=NIGHTWATCH" target="_blank" rel="noopener" class="tile">
+          <i class="fas fa-radiation arrow"></i>
+          <div class="text-xs text-red-500 mono">E-4B · NIGHTWATCH</div>
+          <div class="text-sm font-medium mt-1">National Airborne Operations</div>
+          <div class="text-xs text-zinc-500 mt-1">"Doomsday plane" — all callsigns</div>
+        </a>
+        <a href="https://globe.adsbexchange.com/?find_type=E6" target="_blank" rel="noopener" class="tile">
+          <i class="fas fa-tower-broadcast arrow"></i>
+          <div class="text-xs text-red-500 mono">E-6B MERCURY</div>
+          <div class="text-sm font-medium mt-1">TACAMO · Take Charge & Move Out</div>
+          <div class="text-xs text-zinc-500 mt-1">Submarine command relay</div>
+        </a>
+        <a href="https://globe.adsbexchange.com/?find_type=B52" target="_blank" rel="noopener" class="tile">
+          <i class="fas fa-plane arrow"></i>
+          <div class="text-xs text-red-500 mono">B-52 STRATOFORTRESS</div>
+          <div class="text-sm font-medium mt-1">All B-52H Activity</div>
+          <div class="text-xs text-zinc-500 mt-1">Strategic bomber posture</div>
+        </a>
+        <a href="https://globe.adsbexchange.com/?icao=ae67ec" target="_blank" rel="noopener" class="tile">
+          <i class="fas fa-plane arrow"></i>
+          <div class="text-xs text-red-500 mono">RC-135 · RIVET JOINT</div>
+          <div class="text-sm font-medium mt-1">SIGINT Reconnaissance</div>
+          <div class="text-xs text-zinc-500 mt-1">Black Sea / S. China Sea / Iran</div>
+        </a>
+        <a href="https://globe.adsbexchange.com/?find_type=KC135" target="_blank" rel="noopener" class="tile">
+          <i class="fas fa-droplet arrow"></i>
+          <div class="text-xs text-red-500 mono">TANKERS · KC-135</div>
+          <div class="text-sm font-medium mt-1">Aerial Refueling Activity</div>
+          <div class="text-xs text-zinc-500 mt-1">Mass deployment = leading indicator</div>
+        </a>
+        <a href="https://globe.adsbexchange.com/?mil" target="_blank" rel="noopener" class="tile">
+          <i class="fas fa-globe arrow"></i>
+          <div class="text-xs text-red-500 mono">ALL MILITARY</div>
+          <div class="text-sm font-medium mt-1">Global MIL Filter</div>
+          <div class="text-xs text-zinc-500 mt-1">Unfiltered worldwide</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PREDICTION MARKETS -->
+  <section class="panel mb-10">
+    <div class="panel-header px-4 py-3 flex items-center justify-between">
+      <h3 class="section-h text-base"><span class="num">[ 04 ]</span> PREDICTION MARKETS · GEOPOLITICS</h3>
+      <span class="pill live" id="markets-pill"><span class="dot"></span>LIVE</span>
+    </div>
+    <div class="p-4">
+      <div id="markets-list">
+        <div class="space-y-3">
+          <div class="skeleton" style="height:2rem"></div>
+          <div class="skeleton" style="height:2rem"></div>
+          <div class="skeleton" style="height:2rem"></div>
+        </div>
+      </div>
+      <div class="text-xs text-zinc-500 mt-4 mono flex items-center justify-between flex-wrap gap-2">
+        <span>▸ Top 10 by 24h volume · tag <span class="text-zinc-300">geopolitics</span></span>
+        <a href="https://polymarket.com/markets/geopolitics" target="_blank" rel="noopener" class="text-red-500 hover:text-red-400">Open Polymarket → </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LINE OF SUCCESSION + LIVE X TIMELINES -->
+  <section class="panel mb-10">
+    <div class="panel-header px-4 py-3 flex items-center justify-between">
+      <h3 class="section-h text-base"><span class="num">[ 05 ]</span> LINE OF SUCCESSION · LIVE</h3>
+      <span class="pill live"><span class="dot"></span>X EMBED</span>
+    </div>
+    <div class="p-4">
+      <p class="text-xs text-zinc-400 leading-relaxed mb-4 max-w-3xl">
+        Latest 5 posts per official, pulled directly from X via X's official embed widget. Posts load in your browser (not from this repo). If a widget appears blank, check your ad blocker — many block <code>platform.twitter.com</code> by default.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        <div>
+          <div class="flex items-baseline justify-between mb-2">
+            <div><span class="text-red-500 mono text-xs">[01]</span> <span class="font-medium">President</span></div>
+            <div class="text-xs text-zinc-500">@realDonaldTrump</div>
           </div>
-
-          <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
-            <h3 class="font-semibold text-orange-400">🍕 Pentagon Area</h3>
-            <p class="text-xs text-zinc-400">2602 Columbia Pike, Arlington, VA 22204</p>
-            <a href="https://www.google.com/maps/place/2602+Columbia+Pike,+Arlington,+VA+22204" target="_blank" class="block my-4">
-              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.852,-77.085&zoom=17&size=600x200&maptype=roadmap&markers=color:red%7C38.852,-77.085" class="w-full rounded-lg" alt="Map">
-            </a>
-            <a href="https://www.google.com/maps/place/2602+Columbia+Pike,+Arlington,+VA+22204" target="_blank" class="block w-full text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">
-              Open Google Maps → View Popular Times Graph
-            </a>
+          <div class="twitter-wrap">
+            <a class="twitter-timeline" data-theme="dark" data-tweet-limit="5" data-chrome="noheader nofooter noborders transparent" data-dnt="true" href="https://twitter.com/realDonaldTrump?ref_src=twsrc%5Etfw">Tweets by realDonaldTrump</a>
           </div>
+        </div>
+
+        <div>
+          <div class="flex items-baseline justify-between mb-2">
+            <div><span class="text-red-500 mono text-xs">[02]</span> <span class="font-medium">Vice President</span></div>
+            <div class="text-xs text-zinc-500">@JDVance</div>
+          </div>
+          <div class="twitter-wrap">
+            <a class="twitter-timeline" data-theme="dark" data-tweet-limit="5" data-chrome="noheader nofooter noborders transparent" data-dnt="true" href="https://twitter.com/JDVance?ref_src=twsrc%5Etfw">Tweets by JDVance</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-baseline justify-between mb-2">
+            <div><span class="text-red-500 mono text-xs">[03]</span> <span class="font-medium">Speaker</span></div>
+            <div class="text-xs text-zinc-500">@SpeakerJohnson</div>
+          </div>
+          <div class="twitter-wrap">
+            <a class="twitter-timeline" data-theme="dark" data-tweet-limit="5" data-chrome="noheader nofooter noborders transparent" data-dnt="true" href="https://twitter.com/SpeakerJohnson?ref_src=twsrc%5Etfw">Tweets by SpeakerJohnson</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-baseline justify-between mb-2">
+            <div><span class="text-red-500 mono text-xs">[04]</span> <span class="font-medium">President pro tempore</span></div>
+            <div class="text-xs text-zinc-500">@ChuckGrassley</div>
+          </div>
+          <div class="twitter-wrap">
+            <a class="twitter-timeline" data-theme="dark" data-tweet-limit="5" data-chrome="noheader nofooter noborders transparent" data-dnt="true" href="https://twitter.com/ChuckGrassley?ref_src=twsrc%5Etfw">Tweets by ChuckGrassley</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-baseline justify-between mb-2">
+            <div><span class="text-red-500 mono text-xs">[05]</span> <span class="font-medium">Secretary of State</span></div>
+            <div class="text-xs text-zinc-500">@SecRubio</div>
+          </div>
+          <div class="twitter-wrap">
+            <a class="twitter-timeline" data-theme="dark" data-tweet-limit="5" data-chrome="noheader nofooter noborders transparent" data-dnt="true" href="https://twitter.com/SecRubio?ref_src=twsrc%5Etfw">Tweets by SecRubio</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-baseline justify-between mb-2">
+            <div><span class="text-red-500 mono text-xs">[06]</span> <span class="font-medium">Secretary of Treasury</span></div>
+            <div class="text-xs text-zinc-500">@SecScottBessent</div>
+          </div>
+          <div class="twitter-wrap">
+            <a class="twitter-timeline" data-theme="dark" data-tweet-limit="5" data-chrome="noheader nofooter noborders transparent" data-dnt="true" href="https://twitter.com/SecScottBessent?ref_src=twsrc%5Etfw">Tweets by SecScottBessent</a>
+          </div>
+        </div>
+
+      </div>
+      <div class="text-xs text-zinc-500 mt-4 mono">
+        ▸ Cabinet positions [05]+ change frequently. Verify against <a href="https://www.state.gov/biographies/" target="_blank" rel="noopener" class="text-red-500">state.gov</a> / <a href="https://home.treasury.gov/about/general-information/officials" target="_blank" rel="noopener" class="text-red-500">treasury.gov</a> and update the handles in <code>index.html</code> if needed.
+      </div>
+    </div>
+  </section>
+
+  <!-- ADVERSARY MEDIA -->
+  <section class="panel mb-10">
+    <div class="panel-header px-4 py-3 flex items-center justify-between">
+      <h3 class="section-h text-base"><span class="num">[ 06 ]</span> ADVERSARY & FOREIGN MEDIA</h3>
+      <span class="pill warn"><span class="dot"></span>EXTERNAL</span>
+    </div>
+    <div class="p-4">
+      <div class="text-xs text-zinc-400 mb-4 leading-relaxed max-w-3xl">
+        State-controlled and state-aligned outlets. Useful for tracking adversary framing, narrative shifts, and timing of pre-positioned messaging. <span class="text-amber-500">Reading state media ≠ believing it.</span>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <a href="https://en.mehrnews.com/" target="_blank" rel="noopener" class="tile"><i class="fas fa-arrow-up-right-from-square arrow text-xs"></i><div class="text-xs text-red-500 mono">🇮🇷 IRAN</div><div class="text-sm font-medium mt-1">Mehr News</div><div class="text-xs text-zinc-500 mt-1">State-aligned</div></a>
+        <a href="https://www.tasnimnews.com/en" target="_blank" rel="noopener" class="tile"><i class="fas fa-arrow-up-right-from-square arrow text-xs"></i><div class="text-xs text-red-500 mono">🇮🇷 IRAN</div><div class="text-sm font-medium mt-1">Tasnim News</div><div class="text-xs text-zinc-500 mt-1">IRGC-linked</div></a>
+        <a href="https://www.presstv.ir/" target="_blank" rel="noopener" class="tile"><i class="fas fa-arrow-up-right-from-square arrow text-xs"></i><div class="text-xs text-red-500 mono">🇮🇷 IRAN</div><div class="text-sm font-medium mt-1">Press TV</div><div class="text-xs text-zinc-500 mt-1">English state</div></a>
+        <a href="https://sputnikglobe.com/" target="_blank" rel="noopener" class="tile"><i class="fas fa-arrow-up-right-from-square arrow text-xs"></i><div class="text-xs text-red-500 mono">🇷🇺 RUSSIA</div><div class="text-sm font-medium mt-1">Sputnik Global</div><div class="text-xs text-zinc-500 mt-1">State media</div></a>
+        <a href="https://tass.com/" target="_blank" rel="noopener" class="tile"><i class="fas fa-arrow-up-right-from-square arrow text-xs"></i><div class="text-xs text-red-500 mono">🇷🇺 RUSSIA</div><div class="text-sm font-medium mt-1">TASS</div><div class="text-xs text-zinc-500 mt-1">State news agency</div></a>
+        <a href="https://english.news.cn/" target="_blank" rel="noopener" class="tile"><i class="fas fa-arrow-up-right-from-square arrow text-xs"></i><div class="text-xs text-red-500 mono">🇨🇳 CHINA</div><div class="text-sm font-medium mt-1">Xinhua</div><div class="text-xs text-zinc-500 mt-1">State news agency</div></a>
+        <a href="https://www.globaltimes.cn/" target="_blank" rel="noopener" class="tile"><i class="fas fa-arrow-up-right-from-square arrow text-xs"></i><div class="text-xs text-red-500 mono">🇨🇳 CHINA</div><div class="text-sm font-medium mt-1">Global Times</div><div class="text-xs text-zinc-500 mt-1">CCP-aligned</div></a>
+        <a href="https://www.kcna.kp/en" target="_blank" rel="noopener" class="tile"><i class="fas fa-arrow-up-right-from-square arrow text-xs"></i><div class="text-xs text-red-500 mono">🇰🇵 DPRK</div><div class="text-sm font-medium mt-1">KCNA</div><div class="text-xs text-zinc-500 mt-1">Often unreachable</div></a>
+        <a href="https://www.jpost.com/" target="_blank" rel="noopener" class="tile"><i class="fas fa-arrow-up-right-from-square arrow text-xs"></i><div class="text-xs text-red-500 mono">🇮🇱 ISRAEL</div><div class="text-sm font-medium mt-1">Jerusalem Post</div><div class="text-xs text-zinc-500 mt-1">English daily</div></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HEADLINES -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+    <div class="panel">
+      <div class="panel-header px-4 py-3 flex items-center justify-between">
+        <h3 class="section-h text-base"><span class="num">[ 07 ]</span> NATSEC HEADLINES</h3>
+        <span class="pill live" id="natsec-pill"><span class="dot"></span>LIVE</span>
+      </div>
+      <div class="p-4" id="headlines-natsec">
+        <div class="space-y-3"><div class="skeleton" style="height:3rem"></div><div class="skeleton" style="height:3rem"></div><div class="skeleton" style="height:3rem"></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header px-4 py-3 flex items-center justify-between">
+        <h3 class="section-h text-base"><span class="num">[ 08 ]</span> CONFLICT WIRE</h3>
+        <span class="pill live" id="conflict-pill"><span class="dot"></span>LIVE</span>
+      </div>
+      <div class="p-4" id="headlines-conflict">
+        <div class="space-y-3"><div class="skeleton" style="height:3rem"></div><div class="skeleton" style="height:3rem"></div><div class="skeleton" style="height:3rem"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="border-t border-zinc-800 pt-6 pb-12 text-xs text-zinc-500 mono space-y-2">
+    <div class="flex flex-wrap gap-x-4 gap-y-1">
+      <span>HOST: GitHub Pages</span>
+      <span>· DATA: GitHub Actions cron @ 30min</span>
+      <span>· SOURCES: Polymarket Gamma · Google Maps (scraped) · ADS-B Exchange · X Embed · RSS</span>
+    </div>
+    <div>X embed widgets set cookies in your browser per X's policy. All other data flows through this repo's static JSON.</div>
+    <div class="text-amber-600">⚠ This is a passive open-source indicator board. It is not intelligence. Do not make decisions on the basis of these signals alone.</div>
+  </footer>
+</div>
+
+<!-- X widgets script — loaded once, populates all <a class="twitter-timeline"> -->
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<!-- =============================================================== -->
+<!-- DATA LAYER                                                       -->
+<!-- =============================================================== -->
+<script>
+'use strict';
+
+const GAMMA = 'https://gamma-api.polymarket.com';
+const GEOPOLITICS_TAG = 100265;
+const INDICATOR_KEYS = ['russia_nato', 'iran_strike', 'china_taiwan', 'nuclear'];
+
+const RSS_FEEDS = {
+  natsec: [
+    { src: 'DEFENSE ONE',      url: 'https://www.defenseone.com/rss/all/' },
+    { src: 'WAR ZONE',         url: 'https://www.twz.com/feed' },
+    { src: 'BREAKING DEFENSE', url: 'https://breakingdefense.com/feed/' },
+  ],
+  conflict: [
+    { src: 'REUTERS · WORLD', url: 'https://feeds.reuters.com/Reuters/worldNews' },
+    { src: 'AL JAZEERA',      url: 'https://www.aljazeera.com/xml/rss/all.xml' },
+    { src: 'BBC · WORLD',     url: 'http://feeds.bbci.co.uk/news/world/rss.xml' },
+  ],
+};
+
+// ───────────────────────────────────────────────────────────────────
+// ERROR CONSOLE
+// ───────────────────────────────────────────────────────────────────
+const errorLog = [];
+function logError(source, err) {
+  const msg = err && err.message ? err.message : String(err);
+  errorLog.push({ source, msg, t: new Date().toISOString() });
+  renderErrors();
+  console.error('[' + source + ']', err);
+}
+function renderErrors() {
+  const box = document.getElementById('error-console');
+  const list = document.getElementById('error-list');
+  if (!errorLog.length) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  list.innerHTML = errorLog.map(e =>
+    `<pre>[${e.t.slice(11,19)}Z] ${e.source}\n${escapeHTML(e.msg)}</pre>`
+  ).join('');
+}
+
+// ───────────────────────────────────────────────────────────────────
+// CLOCK
+// ───────────────────────────────────────────────────────────────────
+function tickClock() {
+  const el = document.getElementById('utc-clock');
+  if (el) el.textContent = new Date().toISOString().slice(11, 19) + ' UTC';
+}
+setInterval(tickClock, 1000); tickClock();
+
+function setRefresh(msg) {
+  const el = document.getElementById('last-refresh');
+  if (el) el.textContent = msg;
+}
+
+// ───────────────────────────────────────────────────────────────────
+// PIZZA — load static JSON, render Chart.js bar charts
+// ───────────────────────────────────────────────────────────────────
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const HOURS = Array.from({length: 24}, (_, i) => String(i).padStart(2, '0'));
+
+// Local DC time → JS Date is the visitor's local. The data is in
+// store-local time. Treat them as approximately the same — both
+// stores are Eastern Time and we're rendering an indicator, not booking.
+function todayIdx() {
+  // JS getDay(): 0 = Sun. Convert to Mon-first index.
+  const d = new Date().getDay();
+  return (d + 6) % 7;
+}
+function nowHour() {
+  return new Date().getHours();
+}
+
+const pizzaCharts = {};
+
+function renderPizzaCard(loc, gridEl) {
+  const card = document.createElement('div');
+  card.className = 'pizza-card';
+  card.dataset.id = loc.id;
+
+  const stale = loc.raw_status === 'stale';
+  const noData = loc.raw_status === 'no_data' || !loc.weekly || loc.weekly.length < 7;
+
+  const cur = loc.current_popularity;
+  const curColor =
+    cur == null ? '#666' :
+    cur >= 70   ? 'var(--accent-bright)' :
+    cur >= 40   ? 'var(--amber)' :
+                  'var(--green)';
+
+  const chartId = 'chart_' + loc.id;
+  card.innerHTML = `
+    <div class="flex items-start justify-between gap-2">
+      <div>
+        <div class="text-xs text-red-500 mono">${escapeHTML(loc.label || '')}</div>
+        <div class="text-sm font-medium mt-1">${escapeHTML(loc.name || '')}</div>
+        <div class="text-xs text-zinc-500 mt-0.5">${escapeHTML((loc.address || '').replace(', USA',''))}</div>
+      </div>
+      <div class="text-right">
+        <div class="text-[0.6rem] text-zinc-500 mono">NOW</div>
+        <div class="stat-now" style="color:${curColor}">${cur != null ? cur : '—'}<span class="text-base text-zinc-500">${cur != null ? '%' : ''}</span></div>
+        ${stale ? '<div class="pill stale mt-1"><span class="dot"></span>STALE</div>' : ''}
+      </div>
+    </div>
+    <div class="day-tabs" data-tabs></div>
+    <div class="chart-wrap"><canvas id="${chartId}"></canvas></div>
+    <div class="mt-2 flex items-center justify-between text-xs">
+      <a href="https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(loc.place_id || '')}" target="_blank" rel="noopener" class="text-red-500 hover:text-red-400">
+        Open in Google Maps →
+      </a>
+      ${loc.rating != null ? `<span class="text-zinc-500">★ ${loc.rating} (${loc.rating_count || 0})</span>` : ''}
+    </div>
+  `;
+  gridEl.appendChild(card);
+
+  if (noData) {
+    card.querySelector('.chart-wrap').innerHTML = '<div class="text-xs text-zinc-500 mt-6 text-center">No popular times data — Google may not publish this for this store, or the scrape has not run yet.</div>';
+    return;
+  }
+
+  // Tabs
+  const tabsEl = card.querySelector('[data-tabs]');
+  const today = todayIdx();
+  let activeDay = today;
+  DAY_NAMES.forEach((d, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'day-tab' + (i === today ? ' today' : '') + (i === activeDay ? ' active' : '');
+    btn.textContent = d;
+    btn.addEventListener('click', () => {
+      activeDay = i;
+      tabsEl.querySelectorAll('.day-tab').forEach((b, j) => {
+        b.classList.toggle('active', j === activeDay);
+      });
+      drawChart();
+    });
+    tabsEl.appendChild(btn);
+  });
+
+  function drawChart() {
+    const data = (loc.weekly[activeDay] || []).map(v => v == null ? 0 : v);
+    const isToday = activeDay === today;
+    const hr = nowHour();
+    const colors = data.map((_, i) => {
+      if (isToday && i === hr) return 'rgba(245, 158, 11, 0.95)';   // current hour
+      return 'rgba(220, 38, 38, 0.55)';                              // baseline red
+    });
+    const borderColors = data.map((_, i) => {
+      if (isToday && i === hr) return 'rgba(245, 158, 11, 1)';
+      return 'rgba(220, 38, 38, 0.85)';
+    });
+
+    if (pizzaCharts[chartId]) pizzaCharts[chartId].destroy();
+    const ctx = document.getElementById(chartId).getContext('2d');
+    pizzaCharts[chartId] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: HOURS,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderColor: borderColors,
+          borderWidth: 1,
+          borderRadius: 1,
+          barPercentage: 0.95,
+          categoryPercentage: 1.0,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 250 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#000',
+            borderColor: '#dc2626',
+            borderWidth: 1,
+            titleFont: { family: 'JetBrains Mono' },
+            bodyFont: { family: 'JetBrains Mono' },
+            callbacks: {
+              title: (items) => items[0].label + ':00',
+              label: (ctx) => 'busyness ' + ctx.parsed.y,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#666',
+              font: { family: 'JetBrains Mono', size: 9 },
+              callback: function(_, i) { return i % 4 === 0 ? this.getLabelForValue(i) : ''; },
+            },
+            grid: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { display: false },
+            grid: { color: 'rgba(255,255,255,0.04)' },
+          },
+        },
+      },
+    });
+  }
+  drawChart();
+}
+
+async function loadPizza() {
+  const grid = document.getElementById('pizza-grid');
+  const pill = document.getElementById('pizza-pill');
+  const meta = document.getElementById('pizza-meta');
+  try {
+    const r = await fetch('data/pizza.json?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    grid.innerHTML = '';
+    (data.locations || []).forEach(loc => renderPizzaCard(loc, grid));
+    const status = data.status || 'unknown';
+    pill.classList.remove('live', 'warn', 'stale', 'fail');
+    if (status === 'ok')      { pill.classList.add('live'); pill.innerHTML = '<span class="dot"></span>LIVE'; }
+    else if (status === 'partial') { pill.classList.add('warn'); pill.innerHTML = '<span class="dot"></span>PARTIAL'; }
+    else if (status === 'fail')    { pill.classList.add('fail'); pill.innerHTML = '<span class="dot"></span>FAIL'; }
+    else if (status === 'no_data') { pill.classList.add('warn'); pill.innerHTML = '<span class="dot"></span>NO DATA'; }
+    else { pill.classList.add('stale'); pill.innerHTML = '<span class="dot"></span>STALE'; }
+
+    const ts = data.generated_at && data.generated_at !== '1970-01-01T00:00:00+00:00'
+      ? 'Last scrape: ' + new Date(data.generated_at).toLocaleString()
+      : 'Awaiting first scrape — trigger workflow manually in Actions tab.';
+    meta.textContent = `▸ ${ts}` + (data.errors && data.errors.length ? ` · ${data.errors.length} location(s) had errors this run` : '');
+    if (data.errors && data.errors.length) {
+      data.errors.forEach(e => logError('pizza:' + e.id, new Error(e.error)));
+    }
+    if (data.last_error) logError('pizza:script', new Error(data.last_error));
+  } catch (err) {
+    logError('pizza:fetch', err);
+    pill.classList.add('fail');
+    pill.innerHTML = '<span class="dot"></span>FAIL';
+    grid.innerHTML = '<div class="text-amber-500 text-sm">Could not load <code>data/pizza.json</code>. Has the scraper workflow run yet?</div>';
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────
+// POLYMARKET — try cached JSON first, then refresh live
+// ───────────────────────────────────────────────────────────────────
+async function fetchPolymarketCached() {
+  const r = await fetch('data/polymarket.json?t=' + Date.now());
+  if (!r.ok) throw new Error('cached polymarket HTTP ' + r.status);
+  return r.json();
+}
+
+async function fetchPolymarketLive() {
+  const url = `${GAMMA}/events?closed=false&archived=false&tag_id=${GEOPOLITICS_TAG}&related_tags=true&order=volume24hr&ascending=false&limit=50`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('Polymarket live HTTP ' + r.status);
+  return r.json();
+}
+
+function pickMarket(ev) {
+  if (!ev.markets || !ev.markets.length) return null;
+  return [...ev.markets].sort((a, b) =>
+    (parseFloat(b.volume24hr) || 0) - (parseFloat(a.volume24hr) || 0)
+  )[0];
+}
+function yesPrice(m) {
+  try {
+    const prices = JSON.parse(m.outcomePrices || '[]');
+    const outcomes = JSON.parse(m.outcomes || '[]');
+    let idx = outcomes.findIndex(o => /^yes$/i.test(o));
+    if (idx < 0) idx = 0;
+    const p = parseFloat(prices[idx]);
+    return Number.isFinite(p) ? p : null;
+  } catch { return null; }
+}
+function matchEvent(events, keywords) {
+  const lower = keywords.map(k => k.toLowerCase());
+  const scored = events.map(ev => {
+    const text = ((ev.title || '') + ' ' + (ev.description || '') + ' ' + (ev.slug || '')).toLowerCase();
+    const hits = lower.filter(k => text.includes(k)).length;
+    return { ev, hits, vol: parseFloat(ev.volume24hr) || 0 };
+  }).filter(s => s.hits > 0);
+  if (!scored.length) return null;
+  scored.sort((a, b) => b.hits - a.hits || b.vol - a.vol);
+  return scored[0].ev;
+}
+
+// keyword config (mirror of the python script)
+const INDICATOR_BUCKETS = [
+  { key: 'russia_nato',  label: 'RUSSIA × NATO',  keywords: ['nato', 'article 5', 'russia nato', 'world war'] },
+  { key: 'iran_strike',  label: 'IRAN STRIKE',    keywords: ['iran strike', 'us iran', 'iran attack', 'iran'] },
+  { key: 'china_taiwan', label: 'CHINA × TAIWAN', keywords: ['taiwan invasion', 'china taiwan', 'taiwan'] },
+  { key: 'nuclear',      label: 'NUCLEAR USE',    keywords: ['nuclear weapon', 'nuke detonated', 'nuclear'] },
+];
+
+function renderIndicatorTile(slot, label, link, question, pct, vol) {
+  const color = pct == null ? '#666'
+              : pct >= 50   ? 'var(--accent-bright)'
+              : pct >= 25   ? 'var(--amber)'
+              :               'var(--green)';
+  slot.innerHTML = `
+    <div class="indicator-label">${escapeHTML(label)}</div>
+    <div class="indicator-value mt-2" style="color:${color}">${pct != null ? pct + '%' : '—'}</div>
+    <div class="text-xs text-zinc-300 mt-2 leading-snug" style="min-height:2.4em">
+      ${link ? `<a href="${escapeHTML(link)}" target="_blank" rel="noopener" class="hover:text-red-400">${escapeHTML((question || label).slice(0, 90))}${(question || '').length > 90 ? '…' : ''}</a>`
+             : `<span class="text-zinc-500">${escapeHTML(question || 'No active matching market')}</span>`}
+    </div>
+    <div class="bar-track mt-3"><div class="bar-fill" style="width:${pct ?? 0}%; background:${color}"></div></div>
+    <div class="indicator-meta mt-2">${vol != null ? '24h vol $' + Math.round(vol).toLocaleString() : '—'}</div>
+  `;
+}
+
+function applyIndicatorsFromCached(payload) {
+  const slots = document.querySelectorAll('#indicator-grid .indicator');
+  (payload.indicators || []).forEach((ind, i) => {
+    if (!slots[i]) return;
+    renderIndicatorTile(slots[i], ind.label, ind.event_url, ind.market_question || ind.event_title, ind.yes_pct, ind.volume_24h);
+  });
+}
+
+function applyIndicatorsFromLive(events) {
+  const slots = document.querySelectorAll('#indicator-grid .indicator');
+  INDICATOR_BUCKETS.forEach((b, i) => {
+    if (!slots[i]) return;
+    const ev = matchEvent(events, b.keywords);
+    const m = ev ? pickMarket(ev) : null;
+    const p = m ? yesPrice(m) : null;
+    renderIndicatorTile(
+      slots[i], b.label,
+      ev ? `https://polymarket.com/event/${ev.slug}` : null,
+      m ? m.question : (ev ? ev.title : 'No active matching market'),
+      p != null ? Math.round(p * 100) : null,
+      ev ? parseFloat(ev.volume24hr) || 0 : null
+    );
+  });
+}
+
+function renderTopMarketsFromCached(payload) {
+  const target = document.getElementById('markets-list');
+  if (!payload.top_markets || !payload.top_markets.length) {
+    target.innerHTML = '<div class="text-zinc-500 text-sm">No cached markets — waiting for live fetch.</div>';
+    return;
+  }
+  target.innerHTML = payload.top_markets.map(m => {
+    const pct = m.yes_pct;
+    const color = pct == null ? '#666'
+                : pct >= 50   ? 'var(--accent-bright)'
+                : pct >= 25   ? 'var(--amber)'
+                :               '#a3a3a3';
+    return `
+      <a href="${escapeHTML(m.event_url || 'https://polymarket.com/markets/geopolitics')}" target="_blank" rel="noopener" class="market-row hover:text-red-400" style="text-decoration:none">
+        <div>
+          <div class="market-q">${escapeHTML(m.event_title || m.market_question || '—')}</div>
+          <div class="market-vol">24h volume $${Math.round(m.volume_24h || 0).toLocaleString()}</div>
+        </div>
+        <div class="market-pct" style="color:${color}">${pct != null ? pct + '%' : '—'}</div>
+      </a>
+    `;
+  }).join('');
+}
+
+function renderTopMarketsFromLive(events) {
+  const target = document.getElementById('markets-list');
+  const top = events.slice(0, 10);
+  if (!top.length) return;
+  target.innerHTML = top.map(ev => {
+    const m = pickMarket(ev);
+    const p = m ? yesPrice(m) : null;
+    const pct = p != null ? Math.round(p * 100) : null;
+    const vol = parseFloat(ev.volume24hr) || 0;
+    const color = pct == null ? '#666'
+                : pct >= 50   ? 'var(--accent-bright)'
+                : pct >= 25   ? 'var(--amber)'
+                :               '#a3a3a3';
+    return `
+      <a href="https://polymarket.com/event/${escapeHTML(ev.slug || '')}" target="_blank" rel="noopener" class="market-row hover:text-red-400" style="text-decoration:none">
+        <div>
+          <div class="market-q">${escapeHTML(ev.title || '')}</div>
+          <div class="market-vol">24h volume $${Math.round(vol).toLocaleString()}</div>
+        </div>
+        <div class="market-pct" style="color:${color}">${pct != null ? pct + '%' : '—'}</div>
+      </a>
+    `;
+  }).join('');
+}
+
+async function loadPolymarket() {
+  const statusEl = document.getElementById('indicators-status');
+  const marketsPill = document.getElementById('markets-pill');
+  let cached = null;
+  // 1. Cached snapshot first (always works on a static site)
+  try {
+    cached = await fetchPolymarketCached();
+    applyIndicatorsFromCached(cached);
+    renderTopMarketsFromCached(cached);
+    if (cached.generated_at && cached.generated_at !== '1970-01-01T00:00:00+00:00') {
+      statusEl.textContent = `Source: cached snapshot · ${new Date(cached.generated_at).toLocaleTimeString()}`;
+    } else {
+      statusEl.textContent = 'Source: live · cache not yet seeded';
+    }
+  } catch (err) {
+    logError('polymarket:cached', err);
+  }
+  // 2. Try live on top
+  try {
+    const events = await fetchPolymarketLive();
+    applyIndicatorsFromLive(events);
+    renderTopMarketsFromLive(events);
+    statusEl.textContent = `Source: live · ${events.length} events scanned · ${new Date().toLocaleTimeString()}`;
+    marketsPill.classList.remove('warn', 'stale', 'fail');
+    marketsPill.classList.add('live');
+    marketsPill.innerHTML = '<span class="dot"></span>LIVE';
+  } catch (err) {
+    logError('polymarket:live', err);
+    marketsPill.classList.remove('live');
+    marketsPill.classList.add(cached ? 'stale' : 'fail');
+    marketsPill.innerHTML = `<span class="dot"></span>${cached ? 'CACHED' : 'FAIL'}`;
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────
+// RSS HEADLINES
+// ───────────────────────────────────────────────────────────────────
+async function loadRSSGroup(targetId, pillId, feeds) {
+  const target = document.getElementById(targetId);
+  const pill = document.getElementById(pillId);
+  const items = [];
+  for (const feed of feeds) {
+    try {
+      const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(feed.url));
+      if (!r.ok) throw new Error('rss2json HTTP ' + r.status);
+      const data = await r.json();
+      if (data.status !== 'ok') throw new Error('rss2json says: ' + (data.message || data.status));
+      (data.items || []).slice(0, 5).forEach(it => items.push({
+        src: feed.src, title: it.title, link: it.link, date: new Date(it.pubDate),
+      }));
+    } catch (err) {
+      logError('rss:' + feed.src, err);
+    }
+  }
+  if (!items.length) {
+    target.innerHTML = '<div class="text-amber-500 text-sm">No headlines loaded. Check error console above.</div>';
+    pill.classList.remove('live'); pill.classList.add('fail');
+    pill.innerHTML = '<span class="dot"></span>FAIL';
+    return;
+  }
+  items.sort((a, b) => b.date - a.date);
+  target.innerHTML = items.slice(0, 10).map(it => `
+    <a href="${escapeHTML(it.link || '#')}" target="_blank" rel="noopener" class="news-item block hover:text-red-400" style="text-decoration:none">
+      <div class="news-source">${escapeHTML(it.src)}</div>
+      <div class="news-title">${escapeHTML(it.title || '')}</div>
+      <div class="news-time">${timeAgo(it.date)}</div>
+    </a>
+  `).join('');
+}
+
+function escapeHTML(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function timeAgo(date) {
+  const sec = Math.max(0, (Date.now() - date.getTime()) / 1000);
+  if (sec < 60)    return Math.floor(sec) + 's ago';
+  if (sec < 3600)  return Math.floor(sec / 60) + 'm ago';
+  if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
+  return Math.floor(sec / 86400) + 'd ago';
+}
+
+// ───────────────────────────────────────────────────────────────────
+// MAIN
+// ───────────────────────────────────────────────────────────────────
+async function refreshAll() {
+  setRefresh('Refreshing…');
+  await Promise.allSettled([
+    loadPizza(),
+    loadPolymarket(),
+    loadRSSGroup('headlines-natsec',   'natsec-pill',   RSS_FEEDS.natsec),
+    loadRSSGroup('headlines-conflict', 'conflict-pill', RSS_FEEDS.conflict),
+  ]);
+  setRefresh('Last refresh: ' + new Date().toLocaleTimeString());
+}
+
+refreshAll();
+// Refresh dynamic stuff every 2 minutes; pizza JSON re-checks for new commits.
+setInterval(() => { loadPizza(); loadPolymarket(); }, 2 * 60 * 1000);
+setInterval(() => {
+  loadRSSGroup('headlines-natsec',   'natsec-pill',   RSS_FEEDS.natsec);
+  loadRSSGroup('headlines-conflict', 'conflict-pill', RSS_FEEDS.conflict);
+  setRefresh('Last refresh: ' + new Date().toLocaleTimeString());
+}, 5 * 60 * 1000);
+
+// Catch any unexpected errors so they show up in the console
+window.addEventListener('error', e => logError('window', e.error || new Error(e.message)));
+window.addEventListener('unhandledrejection', e => logError('promise', e.reason || new Error('unhandled rejection')));
+</script>
+</body>
+</html>          </div>
 
           <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
             <h3 class="font-semibold text-orange-400">🍕 White House — Closest</h3>
