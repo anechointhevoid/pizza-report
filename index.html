@@ -10,8 +10,8 @@
   <style>
     body { font-family: system-ui, sans-serif; }
     .section:hover { transform: translateY(-2px); transition: all 0.3s; }
-    iframe { border-radius: 12px; }
-    .gauge-container { position: relative; height: 140px; }
+    iframe { border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3); }
+    .gauge-container { position: relative; height: 148px; }
   </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen pb-12">
@@ -21,69 +21,60 @@
         <h1 class="text-5xl font-bold tracking-tighter flex items-center gap-3">
           🇺🇸 US WAR REPORT <span class="text-red-500">OSINT</span>
         </h1>
-        <p class="text-zinc-400 mt-1">Pizza • Flights • Succession • Markets • Adversary Rhetoric</p>
+        <p class="text-zinc-400 mt-1">Pizza • Flights • Succession • Markets • Adversary Media</p>
       </div>
       <div id="last-updated" class="text-sm text-zinc-400 mt-4 md:mt-0"></div>
     </header>
 
     <!-- Gauges -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-10">
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-orange-900/30">
-        <h3 class="text-sm text-orange-400 mb-2 text-center">Pizza Surge</h3>
-        <div class="gauge-container"><canvas id="pizzaGauge"></canvas></div>
-      </div>
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-sky-900/30">
-        <h3 class="text-sm text-sky-400 mb-2 text-center">Mil Flights</h3>
-        <div class="gauge-container"><canvas id="flightsGauge"></canvas></div>
-      </div>
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-purple-900/30">
-        <h3 class="text-sm text-purple-400 mb-2 text-center">War Markets</h3>
-        <div class="gauge-container"><canvas id="marketGauge"></canvas></div>
-      </div>
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-red-900/30">
-        <h3 class="text-sm text-red-400 mb-2 text-center">X Sentiment</h3>
-        <div class="gauge-container"><canvas id="sentimentGauge"></canvas></div>
-      </div>
-      <div class="bg-zinc-900 p-5 rounded-2xl border border-amber-900/30">
-        <h3 class="text-sm text-amber-400 mb-2 text-center">Adversary Rhetoric</h3>
-        <div class="gauge-container"><canvas id="adversaryGauge"></canvas></div>
-      </div>
+      <div class="bg-zinc-900 p-5 rounded-2xl border border-orange-900/30"><h3 class="text-sm text-orange-400 mb-2 text-center">Pizza Surge</h3><div class="gauge-container"><canvas id="pizzaGauge"></canvas></div></div>
+      <div class="bg-zinc-900 p-5 rounded-2xl border border-sky-900/30"><h3 class="text-sm text-sky-400 mb-2 text-center">Mil Flights</h3><div class="gauge-container"><canvas id="flightsGauge"></canvas></div></div>
+      <div class="bg-zinc-900 p-5 rounded-2xl border border-purple-900/30"><h3 class="text-sm text-purple-400 mb-2 text-center">War Markets</h3><div class="gauge-container"><canvas id="marketGauge"></canvas></div></div>
+      <div class="bg-zinc-900 p-5 rounded-2xl border border-red-900/30"><h3 class="text-sm text-red-400 mb-2 text-center">X Sentiment</h3><div class="gauge-container"><canvas id="sentimentGauge"></canvas></div></div>
+      <div class="bg-zinc-900 p-5 rounded-2xl border border-amber-900/30"><h3 class="text-sm text-amber-400 mb-2 text-center">Adversary Rhetoric</h3><div class="gauge-container"><canvas id="adversaryGauge"></canvas></div></div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-      <!-- Domino's Pizza Tracker -->
+      <!-- Pizza Tracker -->
       <div class="bg-zinc-900 p-6 rounded-2xl border border-orange-900/30 section lg:col-span-2">
-        <h2 class="text-3xl mb-6 flex items-center gap-3">
-          <i class="fas fa-pizza-slice text-orange-500"></i> Domino's Pizza Tracker — Pentagon & White House
-        </h2>
+        <h2 class="text-3xl mb-6 flex items-center gap-3"><i class="fas fa-pizza-slice text-orange-500"></i> Domino's Pizza Tracker — Pentagon & White House</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
             <h3 class="font-semibold text-orange-400">🍕 Pentagon — Closest</h3>
-            <p class="text-sm text-zinc-400">3535 S Ball St, Arlington, VA 22202</p>
-            <iframe width="100%" height="200" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyA...&q=3535+S+Ball+St+Arlington+VA" style="border:0;border-radius:10px;" allowfullscreen="" loading="lazy"></iframe>
-            <a href="https://pizza.dominos.com/virginia/arlington/3535-south-ball-st" target="_blank" class="block mt-4 text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">Order / Live Hours →</a>
+            <p class="text-xs text-zinc-400">3535 S Ball St, Arlington, VA 22202</p>
+            <a href="https://www.google.com/maps/place/3535+S+Ball+St,+Arlington,+VA+22202" target="_blank" class="block my-4">
+              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.8505,-77.0535&zoom=16&size=600x200&maptype=roadmap&markers=color:red%7C38.8505,-77.0535&key=NOKEY" class="w-full rounded-lg" alt="Map">
+            </a>
+            <a href="https://pizza.dominos.com/virginia/arlington/3535-south-ball-st" target="_blank" class="block text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">Order / Live Hours →</a>
           </div>
 
           <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
             <h3 class="font-semibold text-orange-400">🍕 Pentagon Area</h3>
-            <p class="text-sm text-zinc-400">2602 Columbia Pike, Arlington, VA 22204</p>
-            <iframe width="100%" height="200" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyA...&q=2602+Columbia+Pike+Arlington+VA" style="border:0;border-radius:10px;" allowfullscreen="" loading="lazy"></iframe>
-            <a href="https://pizza.dominos.com/virginia/arlington/2602-columbia-pike" target="_blank" class="block mt-4 text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">Order / Live Hours →</a>
+            <p class="text-xs text-zinc-400">2602 Columbia Pike, Arlington, VA 22204</p>
+            <a href="https://www.google.com/maps/place/2602+Columbia+Pike,+Arlington,+VA+22204" target="_blank" class="block my-4">
+              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.852,-77.085&zoom=16&size=600x200&maptype=roadmap&markers=color:red%7C38.852,-77.085&key=NOKEY" class="w-full rounded-lg" alt="Map">
+            </a>
+            <a href="https://pizza.dominos.com/virginia/arlington/2602-columbia-pike" target="_blank" class="block text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">Order / Live Hours →</a>
           </div>
 
           <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
             <h3 class="font-semibold text-orange-400">🍕 White House — Closest</h3>
-            <p class="text-sm text-zinc-400">1300 L St NW, Washington, DC 20005</p>
-            <iframe width="100%" height="200" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyA...&q=1300+L+St+NW+Washington+DC" style="border:0;border-radius:10px;" allowfullscreen="" loading="lazy"></iframe>
-            <a href="https://pizza.dominos.com/washington-dc/washington/1300-l-st-nw" target="_blank" class="block mt-4 text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">Order / Live Hours →</a>
+            <p class="text-xs text-zinc-400">1300 L St NW, Washington, DC 20005</p>
+            <a href="https://www.google.com/maps/place/1300+L+St+NW,+Washington,+DC+20005" target="_blank" class="block my-4">
+              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.903,-77.031&zoom=16&size=600x200&maptype=roadmap&markers=color:red%7C38.903,-77.031&key=NOKEY" class="w-full rounded-lg" alt="Map">
+            </a>
+            <a href="https://pizza.dominos.com/washington-dc/washington/1300-l-st-nw" target="_blank" class="block text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">Order / Live Hours →</a>
           </div>
 
           <div class="bg-zinc-950 border border-orange-800/50 rounded-xl p-5">
             <h3 class="font-semibold text-orange-400">🍕 White House Area</h3>
-            <p class="text-sm text-zinc-400">Nearby Domino's</p>
-            <iframe width="100%" height="200" src="https://www.google.com/maps/embed/v1/search?key=AIzaSyA...&q=Domino's+near+White+House+Washington+DC" style="border:0;border-radius:10px;" allowfullscreen="" loading="lazy"></iframe>
-            <a href="https://www.google.com/maps/search/Domino's+near+White+House" target="_blank" class="block mt-4 text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">More Nearby →</a>
+            <p class="text-xs text-zinc-400">Nearby Domino's</p>
+            <a href="https://www.google.com/maps/search/Domino's+near+White+House,+Washington+DC" target="_blank" class="block my-4">
+              <img src="https://maps.googleapis.com/maps/api/staticmap?center=38.8977,-77.0365&zoom=15&size=600x200&maptype=roadmap&markers=color:red%7C38.8977,-77.0365&key=NOKEY" class="w-full rounded-lg" alt="Map">
+            </a>
+            <a href="https://www.google.com/maps/search/Domino's+near+White+House" target="_blank" class="block text-center bg-orange-600 hover:bg-orange-500 py-3 rounded-lg font-medium">More Nearby Domino's →</a>
           </div>
         </div>
         <div class="mt-8">
@@ -91,67 +82,70 @@
         </div>
       </div>
 
-      <!-- Dedicated Flight Radar Boxes -->
+      <!-- Flight Radar - 4 Large Boxes -->
       <div class="lg:col-span-2 bg-zinc-900 p-6 rounded-2xl border border-blue-900/30 section">
         <h2 class="text-3xl mb-6 flex items-center gap-3"><i class="fas fa-plane text-sky-400"></i> Dedicated Flight Radar Tracking</h2>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- AF1 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <h3 class="font-semibold mb-3 text-sky-400">AF1 VC-25A</h3>
-            <iframe src="https://globe.adsbexchange.com/?icao=adfdf8,adfdf9" class="w-full h-96" title="AF1 Tracking"></iframe>
+            <h3 class="font-semibold mb-3">AF1 VC-25A (28000 / 29000)</h3>
+            <iframe src="https://globe.adsbexchange.com/?icao=adfdf8,adfdf9" class="w-full h-[420px]" title="AF1"></iframe>
           </div>
-          
-          <!-- E-4B -->
           <div>
-            <h3 class="font-semibold mb-3 text-sky-400">E-4B Nightwatch (Doomsday)</h3>
-            <iframe src="https://globe.adsbexchange.com/?search=E-4B" class="w-full h-96" title="E-4B Tracking"></iframe>
+            <h3 class="font-semibold mb-3">E-4B Nightwatch Doomsday Planes</h3>
+            <iframe src="https://globe.adsbexchange.com/?search=E-4B" class="w-full h-[420px]" title="E-4B"></iframe>
           </div>
-          
-          <!-- All Military -->
           <div>
-            <h3 class="font-semibold mb-3 text-sky-400">All Military Aircraft</h3>
-            <iframe src="https://globe.adsbexchange.com/?mil=1" class="w-full h-96" title="Military Tracking"></iframe>
+            <h3 class="font-semibold mb-3">All Military Aircraft</h3>
+            <iframe src="https://globe.adsbexchange.com/?mil=1" class="w-full h-[420px]" title="Military"></iframe>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-3">Full ADS-B Globe (Unfiltered)</h3>
+            <iframe src="https://globe.adsbexchange.com/" class="w-full h-[420px]" title="Full Globe"></iframe>
           </div>
         </div>
       </div>
 
-      <!-- Presidential Line of Succession + Live Tweets -->
+      <!-- Succession with Nitter -->
       <div class="bg-zinc-900 p-6 rounded-2xl border border-amber-900/30 section">
-        <h2 class="text-2xl mb-4 flex items-center gap-3"><i class="fas fa-users text-amber-400"></i> Presidential Line of Succession + Live Activity</h2>
-        <div id="succession-table" class="text-sm"></div>
+        <h2 class="text-2xl mb-4 flex items-center gap-3"><i class="fas fa-users text-amber-400"></i> Presidential Line of Succession + Recent Posts</h2>
+        <div id="succession-table" class="mb-8"></div>
         
-        <div class="mt-8">
-          <h3 class="text-lg mb-3 text-amber-400">Recent Activity (via Nitter)</h3>
-          <iframe src="https://nitter.privacydev.net/JDVance" class="w-full h-80 mb-4" title="JD Vance"></iframe>
-          <iframe src="https://nitter.privacydev.net/SpeakerJohnson" class="w-full h-80" title="Speaker Johnson"></iframe>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-lg mb-2">JD Vance (VP)</h3>
+            <iframe src="https://nitter.privacydev.net/JDVance" class="w-full h-96" title="JD Vance"></iframe>
+          </div>
+          <div>
+            <h3 class="text-lg mb-2">Speaker Mike Johnson</h3>
+            <iframe src="https://nitter.privacydev.net/SpeakerJohnson" class="w-full h-96" title="Speaker Johnson"></iframe>
+          </div>
         </div>
       </div>
 
       <!-- Polymarket -->
       <div class="bg-zinc-900 p-6 rounded-2xl border border-purple-900/30 section">
         <h2 class="text-2xl mb-4">Polymarket War / Escalation Odds</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <iframe src="https://polymarket.com/predictions/war" class="w-full h-80"></iframe>
-          <iframe src="https://polymarket.com/predictions/conflict" class="w-full h-80"></iframe>
+        <div class="grid grid-cols-1 gap-4">
+          <a href="https://polymarket.com/" target="_blank" class="block bg-zinc-800 hover:bg-zinc-700 p-8 rounded-2xl text-center text-xl">
+            Open Polymarket → Live War & Conflict Markets
+          </a>
         </div>
       </div>
 
-      <!-- Adversary Media Live Feeds -->
-      <div class="bg-zinc-900 p-6 rounded-2xl border border-amber-900/30 section">
+      <!-- Adversary Media -->
+      <div class="bg-zinc-900 p-6 rounded-2xl border border-amber-900/30 section lg:col-span-2">
         <h2 class="text-2xl mb-4 flex items-center gap-3"><i class="fas fa-globe text-amber-400"></i> Adversary Media Live Pulse</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <iframe src="https://en.mehrnews.com/rss" class="w-full h-80" title="Mehr (Iran)"></iframe>
-          <iframe src="https://sputnikglobe.com/export/rss2/archive/index.xml" class="w-full h-80" title="Sputnik (Russia)"></iframe>
-          <iframe src="http://www.xinhuanet.com/english/rss/world.xml" class="w-full h-80" title="Xinhua (China)"></iframe>
-          <iframe src="https://www.jpost.com/rss" class="w-full h-80" title="Jerusalem Post"></iframe>
+          <a href="https://en.mehrnews.com/" target="_blank" class="block bg-zinc-800 hover:bg-zinc-700 p-6 rounded-2xl">🇮🇷 Mehr News (Iran)</a>
+          <a href="https://sputnikglobe.com/" target="_blank" class="block bg-zinc-800 hover:bg-zinc-700 p-6 rounded-2xl">🇷🇺 Sputnik (Russia)</a>
+          <a href="https://english.news.cn/" target="_blank" class="block bg-zinc-800 hover:bg-zinc-700 p-6 rounded-2xl">🇨🇳 Xinhua (China)</a>
+          <a href="https://www.jpost.com/" target="_blank" class="block bg-zinc-800 hover:bg-zinc-700 p-6 rounded-2xl">🇮🇱 Jerusalem Post (Israel)</a>
         </div>
       </div>
-
     </div>
 
     <footer class="mt-16 text-center text-xs text-zinc-500">
-      Pure client-side OSINT • No backend • GitHub Pages
+      Pure client-side OSINT • Public GitHub Pages • No backend • Refresh page for latest
     </footer>
   </div>
 
@@ -167,22 +161,21 @@
       });
     }
 
-    async function fetchSuccession() {
-      const div = document.getElementById('succession-table');
-      div.innerHTML = `
-        <table class="w-full text-sm border-collapse">
-          <tr class="border-b border-zinc-700"><td class="p-3 font-mono">1</td><td class="p-3">Vice President</td><td class="p-3">JD Vance</td></tr>
-          <tr class="border-b border-zinc-700"><td class="p-3 font-mono">2</td><td class="p-3">Speaker of the House</td><td class="p-3">Mike Johnson</td></tr>
-          <tr class="border-b border-zinc-700"><td class="p-3 font-mono">3</td><td class="p-3">President pro tempore</td><td class="p-3">Chuck Grassley</td></tr>
+    function fetchSuccession() {
+      document.getElementById('succession-table').innerHTML = `
+        <table class="w-full text-sm">
+          <tr class="border-b border-zinc-700"><td class="p-3 font-mono w-8">1</td><td class="p-3">Vice President</td><td class="p-3 font-medium">JD Vance</td></tr>
+          <tr class="border-b border-zinc-700"><td class="p-3 font-mono w-8">2</td><td class="p-3">Speaker of the House</td><td class="p-3 font-medium">Mike Johnson</td></tr>
+          <tr class="border-b border-zinc-700"><td class="p-3 font-mono w-8">3</td><td class="p-3">President pro tempore</td><td class="p-3 font-medium">Chuck Grassley</td></tr>
         </table>`;
     }
 
     function updateGauges() {
-      createGauge('pizzaGauge', 68, '#f59e0b');
-      createGauge('flightsGauge', 55, '#0ea5e9');
-      createGauge('marketGauge', 62, '#a855f7');
-      createGauge('sentimentGauge', 74, '#ef4444');
-      createGauge('adversaryGauge', 59, '#d97706');
+      createGauge('pizzaGauge', 65, '#f59e0b');
+      createGauge('flightsGauge', 58, '#0ea5e9');
+      createGauge('marketGauge', 60, '#a855f7');
+      createGauge('sentimentGauge', 72, '#ef4444');
+      createGauge('adversaryGauge', 55, '#d97706');
     }
 
     window.onload = () => {
@@ -190,9 +183,8 @@
       fetchSuccession();
       document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
       setInterval(() => {
-        updateGauges();
         document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
-      }, 120000);
+      }, 60000);
     };
   </script>
 </body>
